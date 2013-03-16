@@ -8,7 +8,7 @@ Download mp3s from youtube URLs, on the command line. Uses an (undocumented) API
 
     go run main.go
 
-Waits for URLs from `stdin` and downloads them to local mp3 files as they arrive, with format `VideoTitle.mp3`
+Waits for URLs from `stdin` and downloads them to local mp3 files as they arrive, with format `VideoTitle.mp3`. Prints each filename after it is downloaded.
 
     go run main.go -i youtube-urls.txt
 
