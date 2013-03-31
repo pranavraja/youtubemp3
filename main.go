@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"youtubemp3"
 )
 
@@ -24,13 +25,19 @@ func doForEachLineInFile(fileName string, handler func(string)) (err error) {
 		}
 	}
 	buffered := bufio.NewReader(fileReader)
+	var wg sync.WaitGroup
 	for {
 		line, err := buffered.ReadString('\n')
 		if err != nil {
 			break
 		}
-		handler(line)
+		wg.Add(1)
+		go func(line string) {
+			handler(line)
+			wg.Done()
+		}(line)
 	}
+	wg.Wait()
 	return err
 }
 
