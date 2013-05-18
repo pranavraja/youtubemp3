@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"youtubemp3"
+	"./src/youtubemp3"
 )
 
 var inputFile string
