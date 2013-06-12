@@ -1,13 +1,13 @@
 package main
 
 import (
+	"./src/youtubemp3"
 	"bufio"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
-	"./src/youtubemp3"
 )
 
 var inputFile string
@@ -44,14 +44,18 @@ func doForEachLineInFile(fileName string, handler func(string)) (err error) {
 func main() {
 	flag.Parse()
 	doForEachLineInFile(inputFile, func(youtubeUrl string) {
-		video, err := youtubemp3.GetVideo(strings.TrimRight(youtubeUrl, "\n"))
+		url := strings.TrimRight(youtubeUrl, "\n")
+		if url == "" {
+			return
+		}
+		video, err := youtubemp3.GetVideo(url)
 		if err != nil {
-			fmt.Printf("%v", err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 			return
 		}
 		file, err := os.Create(video.Filename)
 		if err != nil {
-			fmt.Printf("%v", err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 			return
 		}
 		defer file.Close()

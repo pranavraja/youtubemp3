@@ -2,6 +2,7 @@ package youtubemp3
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -55,7 +56,11 @@ func GetVideo(youtubeUrl string) (video *Video, err error) {
 	if err != nil {
 		return
 	}
-	video = &Video{DownloadUrl: statusJson["downloadurl"].(string), Filename: statusJson["file"].(string)}
+	if downloadUrl, ok := statusJson["downloadUrl"].(string); ok {
+		video = &Video{DownloadUrl: downloadUrl, Filename: statusJson["file"].(string)}
+	} else {
+		err = errors.New("no download URL available")
+	}
 	return
 }
 
