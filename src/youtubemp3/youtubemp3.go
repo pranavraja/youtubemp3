@@ -58,6 +58,8 @@ func GetVideo(youtubeUrl string) (video *Video, err error) {
 	}
 	if downloadUrl, ok := statusJson["downloadUrl"].(string); ok {
 		video = &Video{DownloadUrl: downloadUrl, Filename: statusJson["file"].(string)}
+	} else if downloadUrl, ok := statusJson["downloadurl"].(string); ok {
+		video = &Video{DownloadUrl: downloadUrl, Filename: statusJson["file"].(string)}
 	} else {
 		err = errors.New("no download URL available")
 	}
