@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pranavraja/youtubemp3/video"
+	"io"
 	"os"
-	"strings"
 	"sync"
 )
 
@@ -18,65 +18,70 @@ func init() {
 	flag.StringVar(&playlist, "p", "", "Playlist to download videos from")
 }
 
-func doForEachLineInFile(fileName string, handler func(string)) (err error) {
-	fileReader := os.Stdin
-	if fileName != "-" {
-		fileReader, err = os.Open(fileName)
-		if err != nil {
-			return err
-		}
-	}
-	buffered := bufio.NewReader(fileReader)
-	var wg sync.WaitGroup
-	for {
-		line, err := buffered.ReadString('\n')
-		if err != nil {
-			break
-		}
-		wg.Add(1)
-		go func(line string) {
-			handler(line)
-			wg.Done()
-		}(line)
-	}
-	wg.Wait()
-	return err
-}
-
-func download(video *video.Video) {
-	file, err := os.Create(video.Filename)
+func download(vid *video.Video) {
+	file, err := os.Create(vid.Filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
 	}
 	defer file.Close()
-	video.Download(file)
-	println(video.Filename)
+	vid.Download(file)
+	println(vid.Filename)
+}
+
+func fetchAllFromPlaylist(playlistUrl string) {
+	if playlistUrl == "" {
+		return
+	}
+	videos, err := video.GetPlaylist(playlistUrl)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		return
+	}
+	var wg sync.WaitGroup
+	for _, vid := range videos {
+		wg.Add(1)
+		go func(v *video.Video) {
+			download(v)
+			wg.Done()
+		}(vid)
+	}
+	wg.Wait()
+}
+
+func fetchAll(reader io.Reader) {
+	scanner := bufio.NewScanner(reader)
+	var wg sync.WaitGroup
+	for scanner.Scan() {
+		url := scanner.Text()
+		if url == "" {
+			return
+		}
+		vid, err := video.GetVideo(url)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			return
+		}
+		wg.Add(1)
+		go func(v *video.Video) {
+			download(v)
+			wg.Done()
+		}(vid)
+	}
+	wg.Wait()
 }
 
 func main() {
 	flag.Parse()
-	if playlist != "" {
-		videos, err := video.GetPlaylist(playlist)
+	fetchAllFromPlaylist(playlist)
+	fileReader := os.Stdin
+	if inputFile != "-" {
+		var err error
+		fileReader, err = os.Open(inputFile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v\n", err)
 			return
 		}
-		for _, video := range videos {
-			download(video)
-		}
-		return
 	}
-	doForEachLineInFile(inputFile, func(videoUrl string) {
-		url := strings.TrimRight(videoUrl, "\n")
-		if url == "" {
-			return
-		}
-		video, err := video.GetVideo(url)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			return
-		}
-		download(video)
-	})
+	fetchAll(fileReader)
 }
