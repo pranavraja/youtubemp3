@@ -1,4 +1,4 @@
-package youtubemp3
+package video
 
 import (
 	"encoding/json"

@@ -1,19 +1,21 @@
 package main
 
 import (
-	"./src/youtubemp3"
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/pranavraja/youtubemp3/video"
 	"os"
 	"strings"
 	"sync"
 )
 
 var inputFile string
+var playlist string
 
 func init() {
 	flag.StringVar(&inputFile, "i", "-", "Input file (default stdin)")
+	flag.StringVar(&playlist, "p", "", "Playlist to download videos from")
 }
 
 func doForEachLineInFile(fileName string, handler func(string)) (err error) {
@@ -41,25 +43,40 @@ func doForEachLineInFile(fileName string, handler func(string)) (err error) {
 	return err
 }
 
+func download(video *video.Video) {
+	file, err := os.Create(video.Filename)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		return
+	}
+	defer file.Close()
+	video.Download(file)
+	println(video.Filename)
+}
+
 func main() {
 	flag.Parse()
-	doForEachLineInFile(inputFile, func(youtubeUrl string) {
-		url := strings.TrimRight(youtubeUrl, "\n")
+	if playlist != "" {
+		videos, err := video.GetPlaylist(playlist)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			return
+		}
+		for _, video := range videos {
+			download(video)
+		}
+		return
+	}
+	doForEachLineInFile(inputFile, func(videoUrl string) {
+		url := strings.TrimRight(videoUrl, "\n")
 		if url == "" {
 			return
 		}
-		video, err := youtubemp3.GetVideo(url)
+		video, err := video.GetVideo(url)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v\n", err)
 			return
 		}
-		file, err := os.Create(video.Filename)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			return
-		}
-		defer file.Close()
-		video.Download(file)
-		println(video.Filename)
+		download(video)
 	})
 }
