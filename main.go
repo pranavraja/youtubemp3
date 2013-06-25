@@ -30,9 +30,6 @@ func download(vid *video.Video) {
 }
 
 func fetchAllFromPlaylist(playlistUrl string) {
-	if playlistUrl == "" {
-		return
-	}
 	videos, err := video.GetPlaylist(playlistUrl)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -73,7 +70,10 @@ func fetchAll(reader io.Reader) {
 
 func main() {
 	flag.Parse()
-	fetchAllFromPlaylist(playlist)
+	if playlist != "" {
+		fetchAllFromPlaylist(playlist)
+		return
+	}
 	fileReader := os.Stdin
 	if inputFile != "-" {
 		var err error
