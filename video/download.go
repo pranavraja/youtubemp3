@@ -44,6 +44,10 @@ func GetVideo(youtubeUrl string) (video *Video, err error) {
 	if err != nil {
 		return
 	}
+	if responseJson["error"] != nil {
+		err = errors.New(responseJson["error"].(string))
+		return
+	}
 	statusUrl := responseJson["statusurl"].(string) + "&json"
 	statusResponse, err := http.Get(statusUrl)
 	if err != nil {
