@@ -17,7 +17,7 @@ type playlistFeed struct {
 	}
 }
 
-func GetPlaylist(url string) ([]*Video, error) {
+func GetPlaylist(url string) ([]Video, error) {
 	playlistIdFromUrl := regexp.MustCompile(`list=(\w+)`)
 	playlistId := playlistIdFromUrl.FindStringSubmatch(url)
 	if playlistId == nil {
@@ -32,7 +32,7 @@ func GetPlaylist(url string) ([]*Video, error) {
 	if err != nil {
 		return nil, err
 	}
-	videos := make([]*Video, 0, len(feed.Feed.Entry))
+	videos := make([]Video, 0, len(feed.Feed.Entry))
 	for _, entry := range feed.Feed.Entry {
 		url := entry.Link[0].Href
 		video, err := GetVideo(url)

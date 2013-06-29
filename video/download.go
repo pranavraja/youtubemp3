@@ -15,7 +15,7 @@ type Video struct {
 	Filename    string
 }
 
-func (video *Video) Download(output io.Writer) error {
+func (video Video) Download(output io.Writer) error {
 	resp, err := http.Get(video.DownloadUrl)
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (video *Video) Download(output io.Writer) error {
 	return nil
 }
 
-func GetVideo(youtubeUrl string) (video *Video, err error) {
+func GetVideo(youtubeUrl string) (video Video, err error) {
 	postResponse, err := http.PostForm("http://www.vidtomp3.com/cc/conversioncloud.php", url.Values{"mediaurl": {youtubeUrl}})
 	if err != nil {
 		return
@@ -61,9 +61,9 @@ func GetVideo(youtubeUrl string) (video *Video, err error) {
 		return
 	}
 	if downloadUrl, ok := statusJson["downloadUrl"].(string); ok {
-		video = &Video{DownloadUrl: downloadUrl, Filename: statusJson["file"].(string)}
+		video = Video{DownloadUrl: downloadUrl, Filename: statusJson["file"].(string)}
 	} else if downloadUrl, ok := statusJson["downloadurl"].(string); ok {
-		video = &Video{DownloadUrl: downloadUrl, Filename: statusJson["file"].(string)}
+		video = Video{DownloadUrl: downloadUrl, Filename: statusJson["file"].(string)}
 	} else {
 		err = errors.New("no download URL available")
 	}

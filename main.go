@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/pranavraja/youtubemp3/video"
+	"./video"
 	"io"
 	"os"
 	"sync"
@@ -18,7 +18,7 @@ func init() {
 	flag.StringVar(&playlist, "p", "", "Playlist to download videos from")
 }
 
-func download(vid *video.Video) {
+func download(vid video.Video) {
 	file, err := os.Create(vid.Filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -38,7 +38,7 @@ func fetchAllFromPlaylist(playlistUrl string) {
 	var wg sync.WaitGroup
 	for _, vid := range videos {
 		wg.Add(1)
-		go func(v *video.Video) {
+		go func(v video.Video) {
 			download(v)
 			wg.Done()
 		}(vid)
@@ -60,7 +60,7 @@ func fetchAll(reader io.Reader) {
 			return
 		}
 		wg.Add(1)
-		go func(v *video.Video) {
+		go func(v video.Video) {
 			download(v)
 			wg.Done()
 		}(vid)
